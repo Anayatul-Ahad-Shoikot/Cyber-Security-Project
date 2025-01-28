@@ -15,8 +15,7 @@ try {
         exit();
     }
 
-    // Fetch all NIDs from the database
-    $sql = "SELECT * FROM users";
+    $sql = "SELECT id, nid FROM users";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -33,7 +32,7 @@ try {
     if ($nidFound1) {
         $sql = "SELECT v.* 
                 FROM votes v
-                JOIN users u ON v.nid_id = u.id
+                left JOIN users u ON u.id = v.nid_id 
                 WHERE u.id = ?";
         $stmt2 = $conn->prepare($sql);
         $stmt2->bind_param('i', $nid_id);
@@ -48,7 +47,6 @@ try {
         echo json_encode(['success' => false, 'message' => 'NID not found']);
     }
 
-    $stmt->close();
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'An error occurred', 'error' => $e->getMessage()]);
 }

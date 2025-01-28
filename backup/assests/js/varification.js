@@ -39,7 +39,6 @@ function verifyNID() {
                 return response.json();
             })
             .then(data => {
-                console.log('Response data:', data);
                 loadingScreen.style.display = 'none';
                 if (data.casted) {
                     showNotification('You have already cast your vote. Redirecting to home page...');
