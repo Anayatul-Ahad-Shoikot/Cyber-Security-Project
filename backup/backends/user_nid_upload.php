@@ -8,7 +8,7 @@
         $numbers = explode(',', $content);
     
         foreach ($numbers as $number) {
-            $encrypted_nid = password_hash(trim($number), PASSWORD_BCRYPT);
+            $encrypted_nid = trim($number);
             $stmt = $conn->prepare("INSERT INTO users (nid) VALUES (?)");
             $stmt->bind_param("s", $encrypted_nid);
             $stmt->execute();

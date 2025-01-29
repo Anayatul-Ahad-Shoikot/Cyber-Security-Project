@@ -34,33 +34,33 @@ function verifyNID() {
             },
             body: JSON.stringify({ nid: input, ip: ip })
         })
-            .then(response => {
-                console.log('PHP file responded with status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                loadingScreen.style.display = 'none';
-                if (data.casted) {
-                    showNotification('You have already cast your vote. Redirecting to home page...');
-                    setTimeout(() => {
-                        window.location.href = '../../index.php';
-                    }, 5000);
-                } else {
-                    if (data.success) {
-                        deleteCookie(`timerExpiration_${ip}`);
-                        deleteCookie(`invalidAttempts_${ip}`);
-                        window.location.href = '../../pages/casting.php';
-                    } else {
-                        showNotification('Invalid NID. Please try Again after <h2 id="timer">5</h2> seconds.');
-                        incrementInvalidAttempts(ip);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                loadingScreen.style.display = 'none';
+        .then(response => {
+            console.log('PHP file responded with status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            loadingScreen.style.display = 'none';
+            if (data.record === false) {
+                showNotification('Invalid NID. Please try Again after <h2 id="timer">5</h2> seconds.');
+                incrementInvalidAttempts(ip);
+            } else if (data.casted === true) {
+                showNotification('You have already cast your vote. Redirecting to home page...');
+                setTimeout(() => {
+                    window.location.href = '../../index.php';
+                }, 5000);
+            } else if (data.success === true && data.casted === false) {
+                deleteCookie(`timerExpiration_${ip}`);
+                deleteCookie(`invalidAttempts_${ip}`);
+                window.location.href = '../../pages/casting.php';
+            } else {
                 showNotification('An error occurred. Please try again later.');
-            });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingScreen.style.display = 'none';
+            showNotification('An error occurred. Please try again later.');
+        });
     });
 }
 

@@ -1,53 +1,56 @@
 <?php
 
 session_start();
-
 require './db_con.php';
 
 header('Content-Type: application/json');
 
+// Decode JSON input
+$input = json_decode(file_get_contents('php://input'), true);
+
+// Validate NID input
+if (!isset($input['nid']) || !filter_var($input['nid'], FILTER_VALIDATE_INT) || !preg_match('/^\d{8,10}$/', $input['nid'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid NID format']);
+    exit();
+}
+
+$nid = $input['nid'];
+
 try {
-    $input = json_decode(file_get_contents('php://input'), true);
-    $nid = $input['nid'];
-
-    if (!filter_var($nid, FILTER_VALIDATE_INT) || !preg_match('/^\d{8,10}$/', $nid)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid NID format']);
-        exit();
-    }
-
-    $sql = "SELECT id, nid FROM users";
+    // Check if the user exists in the users table
+    $sql = "SELECT id FROM users WHERE nid = ?";
     $stmt = $conn->prepare($sql);
+    $stmt->bind_param('i', $nid);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $nidFound1 = false;
-    while ($row = $result->fetch_assoc()) {
-        if (password_verify($nid, $row['nid'])) {
-            $nidFound1 = true;
-            $nid_id = $row['id'];
-            break;
-        }
+    if ($result->num_rows === 0) {
+        // If user not found in the users table
+        echo json_encode(['record' => false]);
+        exit();
     }
 
-    if ($nidFound1) {
-        $sql = "SELECT v.* 
-                FROM votes v
-                left JOIN users u ON u.id = v.nid_id 
-                WHERE u.id = ?";
-        $stmt2 = $conn->prepare($sql);
-        $stmt2->bind_param('i', $nid_id);
-        $stmt2->execute();
-        $result1 = $stmt2->get_result();
-        if ($result1->num_rows > 0) {
-            echo json_encode(['casted' => true]);
-        } else {
-            echo json_encode(['casted' => false]);
-        }
+    $user = $result->fetch_assoc();
+    $userId = $user['id'];
+
+    // Check if the user ID exists in the votes table
+    $sql = "SELECT 1 FROM votes WHERE nid_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        // If user ID is found in the votes table, voting already done
+        echo json_encode(['casted' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'NID not found']);
+        // If user ID is not found in the votes table
+        echo json_encode(['success' => true, 'casted' => false]);
     }
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'An error occurred', 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+} finally {
+    $stmt->close();
+    $conn->close();
 }
-?>
