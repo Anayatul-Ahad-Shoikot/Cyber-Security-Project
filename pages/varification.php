@@ -16,15 +16,20 @@
             <div class="welcome-text">Verify <span>yourself</span></div>
             <input type="number" id="nid-input" placeholder="Your NID number" oninput="validateInput()">
             <div class="button-group">
-                <button id="next-btn" class="btn disabled" onclick="verifyNID()" disabled>Next</button>
+                <button id="next-btn" class="btn disabled" disabled onclick="verifyNID()">Verify</button>
             </div>
         </div>
     </div>
     <a href="../index.php" class="back-btn">
-        <i class='bx bx-undo'></i>
+        <i class='bx bx-download bx-rotate-90' ></i>
     </a>
-    <div id="loading-screen" style="display: none;">Loading...</div>
-    <div id="notification" >Invalid NID. Please try Again after <h2 id="timer">50</h2> seconds.</div>
+    <div id="loading-screen"><i class='bx bx-loader-alt bx-spin bx-rotate-90' ></i></div>
+    <div id="notification" >Invalid NID. Please try Again after<h2 id="timer"></h2>seconds</div>
+
+    <div class="footer">
+            Election 2025<sup>©</sup>. All rights reserved.
+    </div>
+
     <script src="../assests/js/varification.js"></script>
 </body>
 

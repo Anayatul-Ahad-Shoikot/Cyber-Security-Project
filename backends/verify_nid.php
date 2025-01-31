@@ -1,55 +1,53 @@
 <?php
-
-session_start();
-
-require './db_con.php';
-
-header('Content-Type: application/json');
-
-try {
-    $input = json_decode(file_get_contents('php://input'), true);
-    $nid = $input['nid'];
-
-    if (!filter_var($nid, FILTER_VALIDATE_INT) || !preg_match('/^\d{8,10}$/', $nid)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid NID format']);
-        exit();
-    }
-
-    // Fetch all NIDs from the database
-    $sql = "SELECT nid, nid_id FROM users";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $nidFound1 = false;
-    while ($row = $result->fetch_assoc()) {
-        if (password_verify($nid, $row['nid'])) {
-            $nidFound1 = true;
-            $nid_id = $row['nid_id'];
-            break;
+    session_start();
+    require_once '../backend/db_connection.php';
+    header('Content-Type: application/json');
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method_not_allowed']);
+            exit();
         }
-    }
-
-    if ($nidFound1) {
-        $sql = "SELECT v.* 
-                FROM votes v
-                JOIN users u ON v.nid_id = u.id
-                WHERE u.id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('i', $nid_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            echo json_encode(['casted' => true]);
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid_JSON_input']);
+            exit();
+        }
+        $nid = $input['nid'] ?? '';
+        $ip = $input['ip'];
+        if (!filter_var($nid, FILTER_VALIDATE_INT) || !preg_match('/^\d{8,10}$/', $nid)) {
+            http_response_code(400);
+            echo json_encode(['niderror' => true]);
+            exit();
+        }
+        $stmt = $con->prepare("SELECT user_id FROM users WHERE national_id = ?");
+        $stmt->execute([$nid]);
+        $user = $stmt->fetch();
+        if ($user) {
+            $stmt = $con->prepare("SELECT 1 FROM votes WHERE user_id = ?");
+            $stmt->execute([$user['user_id']]);
+            if ($stmt->fetch()) {
+                echo json_encode(['casted' => true]);
+            } else {
+                session_regenerate_id(true);
+                $_SESSION['authenticated'] = true;
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['ip_address'] = $ip;
+                $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+                $_SESSION['last_activity'] = time();
+                echo json_encode(['success' => true]);
+            }
         } else {
-            echo json_encode(['casted' => false]);
+            echo json_encode(['niderror' => true]);
         }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'NID not found']);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        error_log("Database error: " . $e->getMessage());
+        echo json_encode(['error' => 'Database operation failed']);
+    } catch (Exception $e) {
+        http_response_code(500);
+        error_log("System error: " . $e->getMessage());
+        echo json_encode(['error' => 'System error occurred']);
     }
-
-    $stmt->close();
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'An error occurred', 'error' => $e->getMessage()]);
-}
 ?>

@@ -15,13 +15,13 @@
                 of the change.
             </div>
             <div class="button-group">
-                <a href="./pages/varification.php" class="btn btn-secondary" onclick="checkIfBlocked(event)">Continue</a>
+                <a href="./pages/varification.php" class="btn btn-secondary">Continue</a>
             </div>
         </div>
-        <div id="notification2" ></div>
+        <div id="notification2"> asawd </div>
         <div class="footer">
-            © 2025 Voting App. All rights reserved.
+            Election 2025<sup>©</sup>. All rights reserved.
         </div>
-        <script src="./assests/js/index.js"></script>
+        <script src="./assests/js/ip_check.js"></script>
     </body>
 </html>

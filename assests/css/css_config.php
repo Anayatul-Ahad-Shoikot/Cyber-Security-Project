@@ -1,0 +1,3 @@
+<?php
+    define('ENCRYPTION_KEY', pack('H*', '69612a55589d66d00e55a7a135cfb5da47144394c34d369115824d495b123300'));
+?>
