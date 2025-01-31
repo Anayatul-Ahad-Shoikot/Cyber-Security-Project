@@ -15,16 +15,21 @@
 
         $con->beginTransaction();
 
-        $encrypted_ip = encrypt($data['ip'], ENCRYPTION_KEY);
+        $raw_ip = $data['ip'];
 
-        $stmt = $con->prepare("SELECT ip_id FROM ip_addresses WHERE ip_address = ?");
-        $stmt->execute([$encrypted_ip]);
-        $result = $stmt->fetch();
-        if ($result) {
-            $ip_id = $result['ip_id'];
-        } else {
+        $stmt = $con->prepare("SELECT ip_id, ip_address FROM ip_addresses");
+        $stmt->execute();
+        $result = $stmt->fetchAll();
+        $ip_id = null;
+        foreach($result as $fetched_ip) {
+            if (decrypt($fetched_ip['ip_address'], ENCRYPTION_KEY) == $raw_ip) {
+                $ip_id = $fetched_ip['ip_id'];
+                break;
+            }
+        }
+        if ($ip_id === null) {
             $stmt = $con->prepare('INSERT INTO ip_addresses (ip_address) VALUES (?)');
-            $stmt->execute([$encrypted_ip]);
+            $stmt->execute([encrypt($raw_ip, ENCRYPTION_KEY)]);
             $ip_id = $con->lastInsertId();
         }
 
