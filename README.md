@@ -77,3 +77,11 @@ The primary focus is **security** — preventing unauthorized access, fraudulent
 - Rate limiting per endpoint
 - Admin alerts on suspicious activity
 - End-to-end encryption of voting process
+
+
+
+
+## Screen Shot
+![](./assests/image/index.png)
+![](./assests/image/verification.png)
+![](./assests/image/Vote.png)
