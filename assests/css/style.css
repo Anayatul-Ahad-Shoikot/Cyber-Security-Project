@@ -9,7 +9,7 @@ body {
     margin: 0;
     padding: 0;
     background-image: url('../image/BG2.png');
-    background-position: top;
+    background-position: center;
     background-repeat: repeat;
     height: 100vh;
     text-align: center;

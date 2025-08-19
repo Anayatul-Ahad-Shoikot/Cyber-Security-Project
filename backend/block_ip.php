@@ -8,8 +8,6 @@ try {
     $stmt = $con->prepare("SELECT ip_id FROM ip_addresses WHERE ip_address = ?");
     $stmt->execute([$data['ip']]);
     $ipId = $stmt->fetchColumn();
-
-    // Block IP
     $stmt = $con->prepare("INSERT INTO blocked_ips (ip_id) VALUES (?)");
     $stmt->execute([$ipId]);
 

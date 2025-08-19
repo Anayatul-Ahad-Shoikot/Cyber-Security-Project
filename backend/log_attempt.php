@@ -5,12 +5,9 @@ header('Content-Type: application/json');
 $data = json_decode(file_get_contents('php://input'), true);
 
 try {
-    // Store IP
     $stmt = $con->prepare("INSERT INTO ip_addresses (ip_address) VALUES (?)");
     $stmt->execute([$data['ip']]);
     $ipId = $con->lastInsertId();
-
-    // Store attempt
     $stmt = $con->prepare("INSERT INTO invalid_attempts (ip_id, attempts) VALUES (?, 1)");
     $stmt->execute([$ipId]);
 

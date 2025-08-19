@@ -12,12 +12,7 @@ try {
     ];
 
     // Check if IP is blocked
-    $stmt = $con->prepare("
-        SELECT COUNT(*) 
-        FROM blocked_ips bi
-        JOIN ip_addresses ia ON bi.ip_id = ia.ip_id
-        WHERE ia.ip_address = ?
-    ");
+    $stmt = $con->prepare("SELECT COUNT(*) FROM blocked_ips bi JOIN ip_addresses ia ON bi.ip_id = ia.ip_id WHERE ia.ip_address = ?");
     $stmt->execute([$ip]);
     if ($stmt->fetchColumn() > 0) {
         $response['blocked'] = true;
@@ -26,14 +21,7 @@ try {
     }
 
     // Get attempt count
-    $stmt = $con->prepare("
-        SELECT attempts, attempted_at 
-        FROM invalid_attempts ia
-        JOIN ip_addresses ip ON ia.ip_id = ip.ip_id
-        WHERE ip.ip_address = ?
-        ORDER BY attempted_at DESC
-        LIMIT 1
-    ");
+    $stmt = $con->prepare("SELECT attempts, attempted_at FROM invalid_attempts ia JOIN ip_addresses ip ON ia.ip_id = ip.ip_id WHERE ip.ip_address = ? ORDER BY attempted_at DESC LIMIT 1");
     $stmt->execute([$ip]);
     $attempts = $stmt->fetch();
 
